@@ -1,0 +1,33 @@
+---
+- name: Set access rights for level 7.
+  vars:
+    ansible_ios_commit_confirm_immediate: True
+    ansible_ios_commit_confirm_timeout: 3
+  connection: ansible.netcommon.network_cli
+  hosts: all
+  gather_facts: no
+
+  tasks:
+    - name: Set file privilege level to level 7.
+      cisco.ios.ios_config:
+        lines:
+          - file privilege 7
+  
+    - name: Set command priveleges for level 7.
+      cisco.ios.ios_config:
+        lines:
+          - privilege exec level 7 show running-config view full
+          - privilege exec level 7 show running-config view
+          - privilege exec level 7 show running-config 
+          - privilege exec level 7 show startup-config
+          - privilege exec level 7 show
+    
+
+          #    - name: debug test
+          #      debug:
+          #        msg:
+          #          - "ansible_conection: {{ ansible_connection }}"
+          #          - "ansible_network_os: {{ ansible_network_os }}"
+          #          - "ansible_user: {{ ansible_user }}"
+          #          - "ansible_password: {{ ansible_password }}"
+          #          - "ansible_become: {{ ansible_become }}"

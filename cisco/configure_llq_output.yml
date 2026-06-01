@@ -1,0 +1,66 @@
+---
+- name: Update low level qeueing profiles.
+  vars:
+    ansible_ios_commit_confirm_immediate: True
+    ansible_ios_commit_confirm_timeout: 3
+  connection: ansible.netcommon.network_cli
+  hosts: l2switches:l3switches
+  gather_facts: no
+
+  tasks:
+    - name: Delete old llq-output policy map
+      cisco.ios.ios_config:
+        lines:
+          -  no policy-map llq-output
+
+    - name: class-map match-all llq-Control-20250708-1129z-6
+      cisco.ios.ios_config:
+        lines:
+          - match ip dscp cs6
+        parents:
+          - class-map match-all llq-Control-20250708-1129z-6
+    
+    - name: class-map match-all llq-Video-Voice-20250708-1129z-6
+      cisco.ios.ios_config:
+        lines:
+          - match ip dscp af41
+          - match ip dscp af31
+          - match ip dscp cs3
+          - match ip dscp ef
+        parents:
+          - class-map match-all llq-Video-Voice-20250708-1129z-6
+
+    - name: policy-map llq-output llq-Control
+      cisco.ios.ios_config:
+        lines:
+          - priority level 1 percent 4
+        parents:
+          - policy-map llq-output
+          -  class llq-Control-20250708-1129z-6
+
+    - name: policy-map llq-output llq-Video-Voice
+      cisco.ios.ios_config:
+        lines:
+          -  priority level 2 percent 46
+        parents:
+          - policy-map llq-output
+          -  class llq-Video-Voice-20250708-1129z-6
+
+    - name: policy-map llq-output class-default
+      cisco.ios.ios_config:
+        lines:
+          -  bandwidth percent 50
+        parents:
+          - policy-map llq-output
+          -  class class-default
+
+    - name: Apply to interfaces
+      cisco.ios.ios_config:
+        lines:
+          -  service-policy output llq-output
+        parents:
+          - "interface range {{ INT_FULL_RANGE }}"
+
+    - name: Save config.
+      cisco.ios.ios_config:
+        save_when: modified

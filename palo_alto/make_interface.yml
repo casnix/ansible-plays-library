@@ -1,0 +1,24 @@
+---
+- name: Generate Interfaces
+  hosts: firewall.mgmt.example.com
+  gather_facts: false
+  connection: local
+  vars:
+    provider:
+      ip_address: '{{ ip_address }}'
+      username: '{{ username }}'
+      password: '{{ password }}'
+  collections:
+    - paloaltonetworks.panos
+
+  tasks:
+    - name: Create eth1/3.25 interface.
+      paloaltonetworks.panos.panos_l3_subinterface:
+        provider: '{{ provider }}'
+        name: 'ethernet1/3.25'
+        tag: 25
+        ip: ['eseg.gw']
+        enable_dhcp: false
+        ipv6_enabled: false
+        zone_name: 'Email_DMZ'
+        comment: 'Automation'

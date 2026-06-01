@@ -1,0 +1,45 @@
+---
+- name: Generate tag objects
+  hosts: firewall.mgmt.example.com
+  gather_facts: false
+  connection: local
+
+  vars:
+    provider:
+      ip_address: '{{ ip_address }}'
+      username: '{{ username }}'
+      password: '{{ password }}'
+
+  collections:
+    - paloaltonetworks.panos
+
+
+  tasks:
+    - name: Create Email DMZ tag
+      paloaltonetworks.panos.panos_tag_object:
+        provider: '{{ provider }}'
+        name: 'Email DMZ'
+        color: 'light gray'
+        comments: 'Indicates an email DMZ object'
+    
+    - name: Create Email Allowed tag
+      paloaltonetworks.panos.panos_tag_object:
+        provider: '{{ provider }}'
+        name: 'Email Allowed'
+        color: 'light green'
+        comments: 'Indicates an object allowed to communicate with Email DMZ'
+    
+    - name: Create Email Blocked tag
+      paloaltonetworks.panos.panos_tag_object:
+        provider: '{{ provider }}'
+        name: 'Email Blocked'
+        color: 'red'
+        comments: 'Indicates an object blocked from the Email DMZ'
+    
+    - name: Create Automation Tag
+      paloaltonetworks.panos.panos_tag_object:
+        provider: '{{ provider }}'
+        name: 'Automation'
+        color: 'black'
+        comments: 'Indicates a configuration created by automation'
+

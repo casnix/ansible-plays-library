@@ -1,0 +1,23 @@
+---
+- name: Generate Security Zones
+  hosts: firewall.mgmt.example.com
+  gather_facts: false
+  connection: local
+
+  vars:
+    provider:
+      ip_address: '{{ ip_address }}'
+      username: '{{ username }}'
+      password: '{{ password }}'
+
+  collections:
+    - paloaltonetworks.panos
+
+
+  tasks:
+    - name: Create 'Email_DMZ' zone
+      paloaltonetworks.panos.panos_zone:
+        provider: '{{ provider }}'
+        zone: 'Email_DMZ'
+        zone_profile: 'ZoneProtection'
+

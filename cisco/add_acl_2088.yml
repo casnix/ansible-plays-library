@@ -1,0 +1,38 @@
+---
+- name: Rollout ACL 2088
+  vars:
+    ansible_ios_commit_confirm_immediate: True
+    ansible_ios_commit_confirm_timeout: 3
+  connection: ansible.netcommon.network_cli
+  hosts: all
+  gather_facts: no
+
+  tasks:
+    - name: Create 2088
+      cisco.ios.ios_config:
+        lines:
+          - 1 remark FIM
+          - 2 permit ip 10.1.0.0 0.0.255.255 host 172.30.69.40
+          - 3 permit ip host 172.30.69.40 10.1.0.0 0.0.255.255
+          - 10 remark Jump Server 1
+          - 11 permit ip 10.1.0.0 0.0.0.255 host 10.42.0.69
+          - 12 permit ip host 10.42.0.69 10.1.0.0 0.0.0.255
+          - 20 remark RADIUS Controller
+          - 21 permit ip 10.1.0.0 0.0.255.255 host 172.28.67.2
+          - 22 permit ip host 172.28.67.2 10.1.0.0 0.0.255.255
+          - 30 remark Jump Server 2
+          - 31 permit ip 10.1.0.0 0.0.255.255 host 172.27.82.5
+          - 32 permit ip host 172.27.82.5 10.1.0.0 0.0.255.255
+          - 40 remark STIG V-220529
+          - 41 deny ip any any log-input
+        parents: 
+          - ip access-list extended 2088
+  
+    - name: Add to Management Interface
+      cisco.ios.ios_config:
+        lines:
+          - ip access-group 2088 in
+          - ip access-group 2088 out
+        parents:
+          - interface {{ oobmPort }}
+    

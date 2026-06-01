@@ -1,0 +1,30 @@
+---
+# This playbook will bounce two pots dial-peers called 999020 and 999021.
+
+- name: Bounce POTS with dial-peers 999020 and 999021
+  vars:
+    ansible_ios_commit_confirm_immediate: True
+    ansible_ios_commit_confirm_timeout: 1
+  connection: ansible.netcommon.network_cli
+  hosts: "{{ host | default('routers') }}"
+  gather_facts: false
+
+
+  tasks:
+    - name: Shut down dial-peers 999020 and 999021
+      cisco.ios.ios_config:
+        lines:
+        - shutdown
+        parents: '{{ item }}'
+      with_items:
+      - dial-peer voice 999020 pots
+      - dial-peer voice 999021 pots
+
+    - name: Bring up dial-peers 999020 and 999021
+      cisco.ios.ios_config:
+        lines:
+        - no shutdown
+        parents: '{{ item }}'
+      with_items:
+      - dial-peer voice 999020 pots
+      - dial-peer voice 999021 pots

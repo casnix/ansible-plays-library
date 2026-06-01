@@ -1,0 +1,119 @@
+---
+# scan_cisco_interfaces.yml
+#
+# Scans a set of Cisco switches for interfaces whose description contains
+# a given substring, then prints a summary report.
+#
+# Usage:
+#   ansible-playbook scan_cisco_interfaces.yml \
+#     -i inventory.yml \
+#     -e "search_string='UPLINK'"
+#
+# Required variables:
+#   search_string  - substring to search for in interface descriptions
+#
+# Optional variables:
+#   output_file    - path to write the CSV report (default: interface_report.csv)
+
+- name: Scan Cisco devices for interfaces matching description substring
+  hosts: all
+  gather_facts: false
+  vars:
+    search_string: "{{ search_string | default('') }}"
+    matched_interfaces: []
+
+  tasks:
+
+    - name: Validate search_string is provided
+      ansible.builtin.fail:
+        msg: "Please provide a search_string variable. Example: -e \"search_string='UPLINK'\""
+      when: search_string == ''
+      run_once: true
+
+    - name: Gather interface details via show interfaces
+      cisco.ios.ios_command:
+        commands:
+          - show interfaces
+          - show interfaces description
+      register: raw_output
+
+    - name: Parse interface descriptions
+      ansible.builtin.set_fact:
+        parsed_interfaces: >-
+          {{
+            raw_output.stdout[1]
+            | regex_findall('(?m)^((?:Gi|Fa|Te|Hu|Po|Vl|Lo|Tu)\S+)\s+\S+\s+\S+\s+(.*)')
+          }}
+
+    - name: Filter interfaces whose description contains the search string
+      ansible.builtin.set_fact:
+        matched_interfaces: >-
+          {{
+            parsed_interfaces
+            | selectattr(1, 'search', search_string, ignorecase=True)
+            | list
+          }}
+
+    - name: Display matched interfaces per switch
+      ansible.builtin.debug:
+        msg: >-
+          Switch {{ inventory_hostname }}:
+          {% if matched_interfaces | length == 0 %}
+            No interfaces found matching "{{ search_string }}"
+          {% else %}
+            {% for iface in matched_interfaces %}
+            - {{ iface[0] }} | Description: {{ iface[1] }}
+            {% endfor %}
+          {% endif %}
+
+    # ----------------------------------------------------------------
+    # Aggregate results across all switches and write a single report
+    # ----------------------------------------------------------------
+
+    - name: Build per-host result rows as dicts
+      ansible.builtin.set_fact:
+        host_rows: >-
+          {{
+            host_rows | default([]) + [
+              {
+                'switch': inventory_hostname,
+                'interface': item[0],
+                'description': item[1]
+              }
+            ]
+          }}
+      loop: "{{ matched_interfaces }}"
+
+    - name: Ensure host_rows is always defined (even when no interfaces matched)
+      ansible.builtin.set_fact:
+        host_rows: "{{ host_rows | default([]) }}"
+
+    - name: Gather rows from all hosts to the controller
+      ansible.builtin.set_fact:
+        all_rows: >-
+          {{
+            ansible_play_hosts
+            | map('extract', hostvars, 'host_rows')
+            | select('iterable')
+            | flatten(levels=1)
+            | list
+          }}
+      run_once: true
+      delegate_to: localhost
+
+    - name: Write CSV report
+      ansible.builtin.copy:
+        dest: "{{ report_file | default('interface_report.csv') }}"
+        content: |
+          switch,interface,description
+          {% for row in all_rows %}
+          {{ row.switch }},{{ row.interface }},{{ row.description }}
+          {% endfor %}
+      run_once: true
+      delegate_to: localhost
+
+    - name: Print report location
+      ansible.builtin.debug:
+        msg: "Report written to {{ report_file | default('interface_report.csv') }}"
+      run_once: true
+      delegate_to: localhost

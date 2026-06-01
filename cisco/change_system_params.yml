@@ -1,0 +1,33 @@
+---
+- name: Change System Parameters
+  vars:
+    ansible_ios_commit_confirm_immediate: True
+    ansible_ios_commit_confirm_timeout: 1
+  connection: ansible.netcommon.network_cli
+  hosts: all
+  gather_facts: no
+
+
+  tasks:
+
+    - name: Support transceivers, change log time, errdisable recovery
+      cisco.ios.ios_config:
+        lines:
+          - service unsupported-transceiver
+          - service timestamps log datetime localtime show-timezone
+          - errdisable recovery cause all
+          - errdisable recovery interval 30
+    
+    - name: Get VTY List
+      register: getVtyInfo
+      cisco.ios.ios_command:
+        commands:
+          - show run | i line vty
+
+    - name: Extend exec timeout to 30 minutes
+      with_items: "{{ getVtyInfo.stdout_lines[0] | map('trim') | list }}"
+      cisco.ios.ios_config:
+        lines:
+          - exec-timeout 30
+        parents:
+          - "{{ item }}"

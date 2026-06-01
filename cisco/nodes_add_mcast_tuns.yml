@@ -1,0 +1,32 @@
+---
+- name: Tunnels on l3switches and routers.
+  vars:
+    ansible_ios_commit_confirm_immediate: True
+    ansible_ios_commit_confirm_timeout: 3
+  connection: ansible.netcommon.network_cli
+  hosts: l3switches:routers
+  gather_facts: no
+
+  tasks:
+    - name: Build tunnel endpoints.
+      cisco.ios.ios_config:
+        lines:
+          - "description MCAST {{ BASE_NUM }} TUN"
+          - "ip address 192.168.{{ BASE_NUM }}.{{ TUN_IP }} 255.255.255.254"
+          - ip mtu 1400
+          - ip pim sparse-mode
+          - keepalive 1 3
+          - tunnel source Loopback0
+          - tunnel destination 10.23.90.1
+          - "tunnel key 239{{ SWITCH_NUM }}{{ PADDED_BASE_NUM }}"
+          - tunnel path-mtu-discovery
+        parents: "interface Tunnel239{{ SWITCH_NUM }}{{ PADDED_BASE_NUM }}"
+    
+    - name: Set default mroute.
+      cisco.ios.ios_config:
+        lines:
+          - "ip mroute 0.0.0.0 0.0.0.0 Tunnel239{{ SWITCH_NUM }}{{ PADDED_BASE_NUM }}"
+
+    - name: Save config.
+      cisco.ios.ios_config:
+        save_when: modified

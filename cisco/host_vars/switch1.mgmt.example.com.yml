@@ -1,0 +1,11 @@
+---
+BASE_NUM: 128
+TUN_ORIG: 0
+TUN_IP: 1
+TARGET_IP: 172.18.4.50
+PADDED_BASE_NUM: "128"
+SWITCH_NUM: 1
+INT_FULL_RANGE: "Gi1/0/1 - 48"
+hostMgmtIP: 10.94.182.1
+hostBkMgmtIP: 10.89.128.5
+oobmPort: "GigabitEthernet0/0"

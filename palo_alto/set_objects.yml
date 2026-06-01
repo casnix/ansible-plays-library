@@ -1,0 +1,57 @@
+---
+- name: Generate IP objects
+  hosts: firewall.mgmt.example.com
+  gather_facts: false
+  connection: local
+
+  vars:
+    provider:
+      ip_address: '{{ ip_address }}'
+      username: '{{ username }}'
+      password: '{{ password }}'
+
+  collections:
+    - paloaltonetworks.panos
+
+
+  tasks:
+    - name: Create object eseg.example.com
+      paloaltonetworks.panos.panos_address_object:
+        provider: '{{ provider }}'
+        name: 'eseg.example.com'
+        value: '192.168.20.2'
+        description: 'Public email UAG'
+        tag: ['Email DMZ', 'Automation']
+   
+    - name: Create object eseg.gw
+      paloaltonetworks.panos.panos_address_object:
+        provider: '{{ provider }}'
+        name: 'eseg.gw'
+        value: '192.168.1.17/29'
+        description: 'Email DMZ UAG Gateway'
+        tag: ['Email DMZ', 'Automation']
+    
+    - name: Create object eseg1.dmz.example.com
+      paloaltonetworks.panos.panos_address_object:
+        provider: '{{ provider }}'
+        name: 'eseg1.dmz.example.com'
+        value: '192.168.1.19'
+        description: 'Email DMZ UAG SEG1'
+        tag: ['Email DMZ', 'Automation']
+    
+    - name: Create object eseg2.dmz.example.com
+      paloaltonetworks.panos.panos_address_object:
+        provider: '{{ provider }}'
+        name: 'eseg2.dmz.example.com'
+        value: '192.168.1.20'
+        description: 'Email DMZ UAG SEG2'
+        tag: ['Email DMZ', 'Automation']
+    
+    - name: Create object eseg.dmz.example.com
+      paloaltonetworks.panos.panos_address_object:
+        provider: '{{ provider }}'
+        name: 'eseg.dmz.example.com'
+        value: '192.168.1.18'
+        description: 'Email DMZ UAG VIP'
+        tag: ['Email DMZ', 'Automation']
+    

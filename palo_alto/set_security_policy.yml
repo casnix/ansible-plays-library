@@ -1,0 +1,38 @@
+---
+- name: Generate Security Policies
+  hosts: firewall.mgmt.example.com
+  gather_facts: false
+  connection: local
+
+  vars:
+    provider:
+      ip_address: '{{ ip_address }}'
+      username: '{{ username }}'
+      password: '{{ password }}'
+
+  collections:
+    - paloaltonetworks.panos
+
+
+  tasks:
+   - name: ANY-EMAIL Drop
+     paloaltonetworks.panos.panos_security_rule:
+       provider: '{{ provider }}'
+       rule_name: 'ANY-EMAIL DROP'
+       rule_type: 'interzone'
+       tag_name: ['Email Blocked', 'Automation']
+       source_zone: ['any']
+       source_ip: ['any']
+       source_user: ['any']
+       destination_zone: ['Email_DMZ']
+       destination_ip: ['any']
+       application: ['any']
+       service: ['application-default']
+       action: 'drop'
+       icmp_unreachable: true
+       group_profile: 'Strict Sec'
+       log_start: true
+       log_end: true
+       log_setting: 'Forward and Email'
+       location: after
+       existing_rule: 'PLACEHOLDER Begin Zone Segments'

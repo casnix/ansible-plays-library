@@ -1,0 +1,17 @@
+---
+- name: Show hpe switch versions.
+  hosts: "{{ host | default('all') }}"
+  vars:
+    ansible_ios_commit_confirm_immediate: True
+    ansible_ios_commit_confirm_timeout: 3
+  connection: ansible.netcommon.network_cli
+  gather_facts: no
+
+
+  tasks:
+    - name: Show version
+      arubanetworks.aos_switch.arubaoss.arubaoss_command:
+        commands: ['show version']
+        timeout: 120
+      register: out
+    - debug: var=out.stdout_lines

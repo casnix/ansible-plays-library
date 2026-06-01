@@ -1,0 +1,36 @@
+---
+- name: Generate NAT policies
+  hosts: firewall.mgmt.example.com
+  gather_facts: false
+  connection: local
+
+  vars:
+    provider:
+      ip_address: '{{ ip_address }}'
+      username: '{{ username }}'
+      password: '{{ password }}'
+
+  collections:
+    - paloaltonetworks.panos
+
+
+  tasks:
+    - name: Create 'Email UAG Outbound' policy
+      paloaltonetworks.panos.panos_nat_rule2:
+        provider: '{{ provider }}'
+        name: 'Email UAG Outbound'
+        description: 'Email UAG Outbound'
+        source_addresses: ['eseg.dmz.example.com', 'eseg1.dmz.example.com', 'eseg2.dmz.example.com']
+        destination_addresses: ['any']
+        from_zones: ['Email_DMZ']
+        to_zones: ['Outside-Untrust']
+        to_interface: 'any'
+        service: 'any'
+        tags: ['Email DMZ', 'Automation']
+        location: 'bottom'
+        nat_type: 'ipv4'
+        source_translation_type: 'dynamic-ip-and-port'
+        source_translation_address_type: 'translated-address'
+        source_translation_translated_addresses: ['eseg.example.com']
+
+ 

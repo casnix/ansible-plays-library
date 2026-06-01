@@ -1,0 +1,14 @@
+---
+- name: Turn on multicast routing on switches.
+  vars:
+    ansible_ios_commit_confirm_immediate: True
+    ansible_ios_commit_confirm_timeout: 3
+  connection: ansible.netcommon.network_cli
+  hosts: l3switches
+  gather_facts: no
+
+  tasks:
+    - name: Turn on multicast routing.
+      cisco.ios.ios_config:
+        lines:
+          - ip multicast-routing

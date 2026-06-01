@@ -1,0 +1,17 @@
+[switches]
+switch1.mgmt.example.com
+switch2.mgmt.example.com
+switch3.mgmt.example.com
+
+[l3switches]
+switch1.mgmt.example.com
+switch2.mgmt.example.com
+
+[l2switches]
+switch3.mgmt.example.com
+
+[routers]
+router.mgmt.example.com
+
+[core]
+switch1.mgmt.example.com
